@@ -1,0 +1,87 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        mavenLocal()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    }
+}
+
+plugins {
+    id 'java' // or 'groovy' Must be explicitly applied
+    id 'scala'
+    id 'idea'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+apply from: 'libraries.gradle'
+
+//Get dependencies from Maven central repository
+repositories {
+    mavenCentral()
+    jcenter()
+    mavenLocal()
+}
+
+project.buildDir = "target"
+
+//Project dependencies
+dependencies {
+    testCompile libraries.hamcrestCore
+    testCompile libraries.junit
+
+    compile libraries.logbackClassic
+    compile libraries.slf4jLog4j12
+    
+    compile libraries.scala11Compiler
+    compile libraries.scala11Reflect
+    compile libraries.scala11Library
+    compile libraries.scala11Scalap
+
+    compile libraries.sparkCore
+    compile libraries.sparkSql
+    compile libraries.sparkHive
+    compile libraries.sparkCsv
+    compile libraries.sparkRepl
+    compile libraries.sparkMllib
+    compile libraries.sparkYarn
+    compile libraries.sparkStreaming
+    compile libraries.sparkStreamingKafka
+
+    compile libraries.sparkCassnadra
+
+    compile libraries.mysqlConnectorJava
+
+    compile libraries.kafka
+
+    compile libraries.datanucleusApi
+    compile libraries.datanucleusRdbms
+    compile libraries.datanucleusCore
+
+    //compile files('libs/phoenix-4.5.0-HBase-1.0-client.jar')
+}
+
+shadowJar {
+    relocate 'com.google.common', 'com.adwo.com.google.common'
+    zip64 true
+}
+
+task run(type: JavaExec, dependsOn: classes) {
+    main = 'Main'
+    classpath sourceSets.main.runtimeClasspath
+    classpath configurations.runtime
+}
+
+task copyToShell(type: Copy)
+copyToShell {
+    from('target/libs')
+    into('./')
+    include('*.jar')
+}
+copyToShell.dependsOn shadowJar
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.11'
+}
